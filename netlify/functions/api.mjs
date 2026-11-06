@@ -1,3 +1,4 @@
+import {lifecycleAPI} from '../lib/lifecycle.mjs';
 import {walletAPI} from '../lib/wallet.mjs';
 import {harvestAPI} from '../lib/harvest.mjs';
 import {operations,RuleError,transaction} from '../lib/operations.mjs';
@@ -28,6 +29,7 @@ export default async function(request,context){
  if(!user)return response({error:'Войди в аккаунт'},401);
  if(action==='logout'&&request.method==='POST'){await db.sql`DELETE FROM sessions WHERE token_hash=${hashToken(token)}`;return response({ok:true},200,{'set-cookie':cookie('',0)})}
  const staff=['farmer','admin'].includes(user.role);
+ const life=await lifecycleAPI(db,user,action,b,request.method);if(life!==null)return response(life);
  const walletResult=await walletAPI(db,user,action,b,request.method);if(walletResult!==null)return response(walletResult);
  const harvestResult=await harvestAPI(db,user,action,b,request.method);if(harvestResult!==null)return response(harvestResult);
  const op=await operations(db,user,action,b,request.method);if(op!==null)return response(op);
@@ -45,7 +47,7 @@ export default async function(request,context){
  if(action==='configure-plot'&&request.method==='POST'){
  if(!staff)return response({error:'Нужна роль фермера'},403);const camera=safeCamera(b.camera);const result=await db.sql`UPDATE plots SET camera_url=${camera},status=CASE WHEN owner_id IS NULL THEN ${b.available?'available':'unavailable'} ELSE status END,version=version+1 WHERE id=${Number(b.id)} RETURNING id`;return response({ok:!!result.length})}
  if(action==='record'&&request.method==='POST'){
- const kind=b.kind;if(!['task','note','planting','harvest','delivery','listing'].includes(kind))return response({error:'Неизвестная запись'},400);
+ const kind=b.kind;if(kind==='listing')return response({error:'Продукты продаются только из принятой партии на активном складе. Открой раздел «Урожай и доставка».'},400);if(!['task','note','planting','harvest','delivery','listing'].includes(kind))return response({error:'Неизвестная запись'},400);
  const plot=Number(b.plot)||null;if(plot){const rows=await db.sql`SELECT * FROM plots WHERE id=${plot}`;if(!rows[0]||!canManage(user,rows[0]))return response({error:'Нет доступа к грядке'},403)}
  const title=text(b.title,120);if(!title)return response({error:'Добавь название'},400);const data={title,description:text(b.description,600),date:text(b.date,10),status:kind==='task'?'new':'saved',amount:Math.max(0,Math.min(1000000,Number(b.amount)||0)),category:text(b.category,40)};
  await db.sql`INSERT INTO records(id,owner_id,kind,plot_id,data) VALUES(${randomUUID()},${user.id},${kind},${plot},${JSON.stringify(data)}::jsonb)`;return response({ok:true})}

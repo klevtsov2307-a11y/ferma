@@ -5,3 +5,4 @@ nav{margin-top:28px;max-height:calc(100vh - 210px);overflow:auto;gap:5px}.sidebo
 textarea{font:inherit;width:100%;padding:13px;border:1px solid #cdd5c4;border-radius:7px;margin:8px 0 18px;resize:vertical}button:disabled{opacity:.5;cursor:not-allowed}.event.row{flex-wrap:wrap}
 .context-tabs{display:flex;gap:8px;overflow:auto;padding:6px 0 16px;margin-top:15px}.context-tabs a{white-space:nowrap;text-decoration:none;color:#54704b;border:1px solid var(--line);padding:10px 14px;border-radius:20px;font-size:12px;background:#fff}.context-tabs a.selected{background:#deef9d;color:#244c37}.more-nav{display:none}
 .demo-warning{background:#fff0c7;border:1px solid #e2c775;padding:12px;border-radius:8px;font-size:12px;font-weight:700;color:#6c5014}
+.harvest-alert{border-left:4px solid #d38321;background:#fff2d9;padding:12px;color:#704100;font-weight:600}#season-budget input{width:100%}.panel{overflow-wrap:anywhere}

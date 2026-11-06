@@ -39,3 +39,7 @@
 
 ## Проверка выпуска
 Автоматические тесты: пароли, права, состояния ухода, снимок тарифа, идемпотентность, блокировка неоплаченных работ, отмена, история, остатки и резервы. Это не заменяет пилот и проверку сотрудниками на ферме.
+
+## Harvest lifecycle increment (2026-11-06)
+Implemented: calendar-month demo storage/care purchases, wallet entries, spend ceiling, vacation preferences, plot zones, typed requests, harvest windows, daily in-app reminders via hourly scheduled function, staff batch acceptance with pantry/fridge conditions and per-batch expiry, multi-batch delivery/gift/charity reservations, guarded delivery state machine, staff disposal, verified charity directory, storage-gated produce listings with stock reservations and owner cancellation.
+External dependencies remain: courier price/slots and carrier integration, approved autocare package and automatic execution, actual archive recording/retention/playback and timelapse rendering, external push delivery. Equipment/seedling/kit/ripeness/inspection options currently create staff-review requests, not paid executable jobs. Subscriptions are simulations, not proof of physical service activation. No invented charity recipients or camera recordings. Rental billing still not connected. Monthly ceiling counts gross demo work/subscription outgoings; refunds do not restore it.

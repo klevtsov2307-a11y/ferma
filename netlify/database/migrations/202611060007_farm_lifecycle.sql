@@ -1,0 +1,15 @@
+CREATE TABLE farm_memberships(user_id uuid REFERENCES users(id),kind text CHECK(kind IN ('storage','autocare')),expires_at timestamptz NOT NULL,PRIMARY KEY(user_id,kind));
+CREATE TABLE farm_purchases(id uuid PRIMARY KEY,user_id uuid REFERENCES users(id),request_key uuid NOT NULL,kind text NOT NULL,price_kopecks integer NOT NULL,created_at timestamptz DEFAULT now(),UNIQUE(user_id,request_key));
+CREATE TABLE harvest_windows(id uuid PRIMARY KEY,plot_id integer REFERENCES plots(id),owner_id uuid REFERENCES users(id),crop text NOT NULL,collect_by timestamptz NOT NULL,status text DEFAULT 'ready' CHECK(status IN ('ready','collected','disposed')),notes text NOT NULL,created_at timestamptz DEFAULT now());
+ALTER TABLE harvest_batches ADD COLUMN expires_at timestamptz;
+ALTER TABLE harvest_batches ADD COLUMN storage_conditions text;
+CREATE TABLE delivery_orders(id uuid PRIMARY KEY,user_id uuid REFERENCES users(id),request_key uuid NOT NULL,kind text CHECK(kind IN ('home','gift','charity')),recipient text NOT NULL,address text NOT NULL,contact text NOT NULL,message text,status text DEFAULT 'requested' CHECK(status IN ('requested','confirmed','shipped','delivered','cancelled')),created_at timestamptz DEFAULT now(),UNIQUE(user_id,request_key));
+CREATE TABLE delivery_items(delivery_id uuid REFERENCES delivery_orders(id),batch_id uuid REFERENCES harvest_batches(id),grams integer NOT NULL CHECK(grams>0),PRIMARY KEY(delivery_id,batch_id));
+CREATE TABLE charity_board(id uuid PRIMARY KEY,name text NOT NULL,description text NOT NULL,active boolean DEFAULT true);
+CREATE TABLE farm_requests(id uuid PRIMARY KEY,user_id uuid REFERENCES users(id),plot_id integer REFERENCES plots(id),kind text NOT NULL,details text NOT NULL,status text DEFAULT 'requested' CHECK(status IN ('requested','reviewed','done','cancelled')),report text,created_at timestamptz DEFAULT now());
+CREATE TABLE farm_preferences(user_id uuid PRIMARY KEY REFERENCES users(id),monthly_limit integer NOT NULL DEFAULT 0 CHECK(monthly_limit>=0),vacation_start date,vacation_end date,notes text DEFAULT '');
+CREATE TABLE plot_zones(id uuid PRIMARY KEY,plot_id integer REFERENCES plots(id),owner_id uuid REFERENCES users(id),name text NOT NULL,area numeric NOT NULL CHECK(area>0),crop text NOT NULL);
+CREATE TABLE produce_listings(id uuid PRIMARY KEY,owner_id uuid REFERENCES users(id),batch_id uuid REFERENCES harvest_batches(id),grams integer NOT NULL CHECK(grams>0),price_kopecks integer NOT NULL CHECK(price_kopecks>0),status text DEFAULT 'active' CHECK(status IN ('active','cancelled')),created_at timestamptz DEFAULT now());
+CREATE TABLE lifecycle_alerts(user_id uuid REFERENCES users(id),entity_id uuid,day date DEFAULT current_date,PRIMARY KEY(user_id,entity_id,day));
+ALTER TABLE demo_wallet_entries DROP CONSTRAINT demo_wallet_entries_kind_check;
+ALTER TABLE demo_wallet_entries ADD CONSTRAINT demo_wallet_entries_kind_check CHECK(kind IN ('topup','withdraw','payment','refund','subscription'));
