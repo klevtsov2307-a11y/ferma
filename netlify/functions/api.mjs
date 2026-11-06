@@ -1,3 +1,5 @@
+import {harvestAPI} from '../lib/harvest.mjs';
+import {operations,RuleError,transaction} from '../lib/operations.mjs';
 import {getDatabase} from '@netlify/database';
 import {randomUUID,randomBytes} from 'node:crypto';
 import {hashToken,text,loginName,passwordHash,verify,canManage,safeCamera} from '../lib/domain.mjs';
@@ -25,11 +27,15 @@ export default async function(request,context){
  if(!user)return response({error:'Войди в аккаунт'},401);
  if(action==='logout'&&request.method==='POST'){await db.sql`DELETE FROM sessions WHERE token_hash=${hashToken(token)}`;return response({ok:true},200,{'set-cookie':cookie('',0)})}
  const staff=['farmer','admin'].includes(user.role);
+ const harvestResult=await harvestAPI(db,user,action,b,request.method);if(harvestResult!==null)return response(harvestResult);
+ const op=await operations(db,user,action,b,request.method);if(op!==null)return response(op);
+ if(action==='logout-all'&&request.method==='POST'){await db.sql`DELETE FROM sessions WHERE user_id=${user.id}`;return response({ok:true},200,{'set-cookie':cookie('',0)})}
  if(action==='state'&&request.method==='GET'){
- const plots=await db.sql`SELECT id,name,size,status,crop,sign,version,owner_id FROM plots ORDER BY id`;const records=staff?await db.sql`SELECT * FROM records ORDER BY created_at DESC LIMIT 1000`:await db.sql`SELECT * FROM records WHERE owner_id=${user.id} OR kind='listing' ORDER BY created_at DESC LIMIT 1000`;
- return response({user,plots:plots.map(p=>({...p,mine:p.owner_id===user.id,owner_id:undefined})),records})}
+ const plots=await db.sql`SELECT id,name,size,status,crop,sign,version,owner_id,growing_state FROM plots ORDER BY id`;const records=staff?await db.sql`SELECT * FROM records ORDER BY created_at DESC LIMIT 1000`:await db.sql`SELECT * FROM records WHERE owner_id=${user.id} OR kind='listing' ORDER BY created_at DESC LIMIT 1000`;
+ return response({user,plots:plots.map(p=>({...p,name:p.owner_id===user.id||staff?p.name:'Грядка №'+p.id,crop:p.owner_id===user.id||staff?p.crop:'',sign:p.owner_id===user.id||staff?p.sign:'',mine:p.owner_id===user.id,owner_id:undefined})),records})}
  if(action==='claim'&&request.method==='POST'){
- const id=Number(b.id);const rows=await db.sql`UPDATE plots SET owner_id=${user.id},status='reserved',version=version+1 WHERE id=${id} AND status='available' AND owner_id IS NULL RETURNING id`;if(!rows.length)return response({error:'Участок уже занят или ещё не открыт фермером'},409);await db.sql`INSERT INTO audit(user_id,action,entity) VALUES(${user.id},'reserve',${String(id)})`;return response({ok:true})}
+ return response(await transaction(db,async c=>{const id=Number(b.id);const rows=await c.query("UPDATE plots SET owner_id=$1,status='reserved',version=version+1 WHERE id=$2 AND status='available' AND owner_id IS NULL RETURNING id",[user.id,id]);if(!rows.rows.length)throw new RuleError('Участок уже занят или ещё не открыт фермером');await c.query("INSERT INTO rentals(id,plot_id,user_id,starts_at,status,terms) VALUES($1,$2,$3,now(),'requested',$4)",[randomUUID(),id,user.id,'Предварительное закрепление. Цена и срок аренды требуют отдельного согласования.']);await c.query('INSERT INTO audit(user_id,action,entity) VALUES($1,$2,$3)',[user.id,'reserve',String(id)]);return {ok:true}}))}
+
  if(action==='plot'&&request.method==='POST'){
  const rows=await db.sql`SELECT * FROM plots WHERE id=${Number(b.id)}`;const p=rows[0];if(!p||!canManage(user,p))return response({error:'Нет доступа к грядке'},403);
  const name=text(b.name,60)||p.name,sign=text(b.sign,40),crop=text(b.crop,60);const updated=await db.sql`UPDATE plots SET name=${name},sign=${sign},crop=${crop},version=version+1 WHERE id=${p.id} AND version=${Number(b.version)} RETURNING id`;return updated.length?response({ok:true}):response({error:'Грядка изменилась. Обнови страницу.'},409)}
@@ -43,5 +49,5 @@ export default async function(request,context){
  await db.sql`INSERT INTO records(id,owner_id,kind,plot_id,data) VALUES(${randomUUID()},${user.id},${kind},${plot},${JSON.stringify(data)}::jsonb)`;return response({ok:true})}
  if(action==='complete-task'&&request.method==='POST'){if(!staff)return response({error:'Нужна роль фермера'},403);await db.sql`UPDATE records SET data=jsonb_set(data,'{status}','"done"'),updated_at=now() WHERE id=${b.id}::uuid AND kind='task'`;return response({ok:true})}
  return response({error:'Маршрут не найден'},404);
- }catch(e){console.error('API failure',e.code||e.name);return response({error:e.message?.startsWith('Пароль:')||e.message?.startsWith('Логин:')||e.message?.startsWith('Камера:')?e.message:'Не удалось выполнить действие. Повтори позже.'},400)}
+ }catch(e){if(e instanceof RuleError)return response({error:e.message},e.status);if(e.code==='23505')return response({error:'Уже есть активная работа на участке или исполнитель занят. Обнови список.'},409);console.error('API failure',e.code||e.name);return response({error:e.message?.startsWith('Пароль:')||e.message?.startsWith('Логин:')||e.message?.startsWith('Камера:')?e.message:'Не удалось выполнить действие. Повтори позже.'},400)}
 }
