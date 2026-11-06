@@ -1,0 +1,5 @@
+import {test} from 'node:test';import assert from 'node:assert/strict';import {loginName,passwordHash,verify,canManage,safeCamera} from '../netlify/functions/domain.mjs';
+test('passwords are salted and verified',async()=>{const h=await passwordHash('a-secure-password');assert(await verify('a-secure-password',h));assert(!await verify('wrong',h));assert.notEqual(h,await passwordHash('a-secure-password'))});
+test('invalid registration rejected',async()=>{assert.throws(()=>loginName('x'));await assert.rejects(passwordHash('short'))});
+test('members cannot manage other plots',()=>{assert(!canManage({id:'a',role:'member'},{owner_id:'b'}));assert(canManage({id:'a',role:'member'},{owner_id:'a'}));assert(canManage({id:'a',role:'farmer'},{owner_id:'b'}))});
+test('camera URLs require secure scheme and no embedded credentials',()=>{assert.throws(()=>safeCamera('javascript:alert(1)'));assert.throws(()=>safeCamera('https://user:pass@camera.test'));assert.equal(safeCamera('https://camera.test/live.m3u8'),'https://camera.test/live.m3u8')});
