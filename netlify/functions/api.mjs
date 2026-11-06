@@ -1,3 +1,4 @@
+import {rentalCheckout} from '../lib/rentals.mjs';
 import {lifecycleAPI} from '../lib/lifecycle.mjs';
 import {walletAPI} from '../lib/wallet.mjs';
 import {harvestAPI} from '../lib/harvest.mjs';
@@ -35,10 +36,10 @@ export default async function(request,context){
  const op=await operations(db,user,action,b,request.method);if(op!==null)return response(op);
  if(action==='logout-all'&&request.method==='POST'){await db.sql`DELETE FROM sessions WHERE user_id=${user.id}`;return response({ok:true},200,{'set-cookie':cookie('',0)})}
  if(action==='state'&&request.method==='GET'){
- const plots=await db.sql`SELECT id,name,size,status,crop,sign,version,owner_id,growing_state FROM plots ORDER BY id`;const records=staff?await db.sql`SELECT * FROM records ORDER BY created_at DESC LIMIT 1000`:await db.sql`SELECT * FROM records WHERE owner_id=${user.id} OR kind='listing' ORDER BY created_at DESC LIMIT 1000`;
- return response({user,plots:plots.map(p=>({...p,name:p.owner_id===user.id||staff?p.name:'Грядка №'+p.id,crop:p.owner_id===user.id||staff?p.crop:'',sign:p.owner_id===user.id||staff?p.sign:'',mine:p.owner_id===user.id,owner_id:undefined})),records})}
- if(action==='claim'&&request.method==='POST'){
- return response(await transaction(db,async c=>{const id=Number(b.id);const rows=await c.query("UPDATE plots SET owner_id=$1,status='reserved',version=version+1 WHERE id=$2 AND status='available' AND owner_id IS NULL RETURNING id",[user.id,id]);if(!rows.rows.length)throw new RuleError('Участок уже занят или ещё не открыт фермером');await c.query("INSERT INTO rentals(id,plot_id,user_id,starts_at,status,terms) VALUES($1,$2,$3,now(),'requested',$4)",[randomUUID(),id,user.id,'Предварительное закрепление. Цена и срок аренды требуют отдельного согласования.']);await c.query('INSERT INTO audit(user_id,action,entity) VALUES($1,$2,$3)',[user.id,'reserve',String(id)]);return {ok:true}}))}
+ const plots=await db.sql`SELECT id,name,size,status,crop,sign,version,owner_id,growing_state,rental_monthly_kopecks,rental_simulation FROM plots ORDER BY id`;const records=staff?await db.sql`SELECT * FROM records ORDER BY created_at DESC LIMIT 1000`:await db.sql`SELECT * FROM records WHERE owner_id=${user.id} OR kind='listing' ORDER BY created_at DESC LIMIT 1000`;
+ const myRentals=await db.sql`SELECT plot_id,starts_at,ends_at,price_kopecks,status,is_simulation FROM rentals WHERE user_id=${user.id} ORDER BY created_at DESC`;
+ return response({user,rentals:myRentals,plots:plots.map(p=>({...p,name:p.owner_id===user.id||staff?p.name:'Грядка №'+p.id,crop:p.owner_id===user.id||staff?p.crop:'',sign:p.owner_id===user.id||staff?p.sign:'',mine:p.owner_id===user.id,owner_id:undefined})),records})}
+ if(action==='claim'&&request.method==='POST')return response(await rentalCheckout(db,user,b));
 
  if(action==='plot'&&request.method==='POST'){
  const rows=await db.sql`SELECT * FROM plots WHERE id=${Number(b.id)}`;const p=rows[0];if(!p||!canManage(user,p))return response({error:'Нет доступа к грядке'},403);

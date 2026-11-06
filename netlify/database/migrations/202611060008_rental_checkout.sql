@@ -1,0 +1,11 @@
+ALTER TABLE plots ADD COLUMN rental_monthly_kopecks integer CHECK(rental_monthly_kopecks>0);
+ALTER TABLE plots ADD COLUMN rental_simulation boolean NOT NULL DEFAULT true;
+UPDATE plots SET size=CASE WHEN id<=25 THEN 3 ELSE 7 END,rental_monthly_kopecks=CASE WHEN id<=25 THEN 70000 ELSE 140000 END,status='available' WHERE owner_id IS NULL;
+ALTER TABLE rentals ADD COLUMN request_key uuid;
+ALTER TABLE rentals ADD COLUMN price_kopecks integer;
+ALTER TABLE rentals ADD COLUMN months integer;
+ALTER TABLE rentals ADD COLUMN is_simulation boolean NOT NULL DEFAULT true;
+CREATE UNIQUE INDEX rental_request_once ON rentals(user_id,request_key);
+CREATE UNIQUE INDEX rental_one_active_plot ON rentals(plot_id) WHERE status='active';
+ALTER TABLE demo_wallet_entries DROP CONSTRAINT demo_wallet_entries_kind_check;
+ALTER TABLE demo_wallet_entries ADD CONSTRAINT demo_wallet_entries_kind_check CHECK(kind IN ('topup','withdraw','payment','refund','subscription','rental'));
