@@ -1,6 +1,6 @@
 import {getDatabase} from '@netlify/database';
 import {randomUUID,randomBytes} from 'node:crypto';
-import {hashToken,text,loginName,passwordHash,verify,canManage,safeCamera} from './domain.mjs';
+import {hashToken,text,loginName,passwordHash,verify,canManage,safeCamera} from '../lib/domain.mjs';
 export const config={path:'/api/*'};
 const response=(data,status=200,extra={})=>new Response(JSON.stringify(data),{status,headers:{'content-type':'application/json','cache-control':'no-store',...extra}});
 const cookie=(token,age)=>`farm_session=${token}; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=${age}`;
@@ -11,7 +11,7 @@ export default async function(request,context){
  let b={};if(request.method==='POST'){if(Number(request.headers.get('content-length')||0)>16384)return response({error:'Слишком большой запрос'},413);try{const raw=await request.text();if(raw.length>16384)return response({error:'Слишком большой запрос'},413);b=JSON.parse(raw)}catch{return response({error:'Неверный формат'},400)}}
  let db;try{db=getDatabase()}catch{return response({error:'Общая база ещё не подключена. Используй деморежим.',code:'SETUP_REQUIRED'},503)}
  try{
- if(action==='health')return response({ok:true});
+ if(action==='health'){await db.sql`SELECT id FROM plots LIMIT 1`;return response({ok:true,database:true})}
  if(['register','login'].includes(action)&&request.method==='POST'){
  const key=hashToken((context.ip||'unknown')+':'+action),limit=await db.sql`INSERT INTO rate_limits(key,reset_at) VALUES(${key},now()+interval '15 minutes') ON CONFLICT(key) DO UPDATE SET count=CASE WHEN rate_limits.reset_at<now() THEN 1 ELSE rate_limits.count+1 END,reset_at=CASE WHEN rate_limits.reset_at<now() THEN now()+interval '15 minutes' ELSE rate_limits.reset_at END RETURNING count`;
  if(limit[0].count>15)return response({error:'Слишком много попыток. Попробуй через 15 минут.'},429);
