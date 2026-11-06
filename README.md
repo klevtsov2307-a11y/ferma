@@ -22,3 +22,6 @@ Tests cover password validation, authorization helpers, camera URL validation, s
 
 ## Application path
 `data.js` is demo persistence, `features.js` uses `/api/*` for accounts. Future native clients should use a separately scoped mobile authentication flow; do not copy browser cookies into a native app. Manifest supplies initial web-app metadata. Offline mutations are not enabled.
+
+
+Demo wallet: per-user balances in integer kopecks; top-up, withdrawal, server-priced work-order payment and pre-start cancellation refund are simulated only. Row locks, request keys and unique order-ledger indexes prevent duplicate charges. Simulated completed jobs do not change growing state or enter harvest passports. Rental offers 3/7 m² and 700/1400 RUB are provisional: actual availability uses physical plot sizes; rental billing is not implemented. Season calculator includes rent, work, materials and delivery; yield and store prices are explicit user assumptions.

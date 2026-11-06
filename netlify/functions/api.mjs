@@ -1,3 +1,4 @@
+import {walletAPI} from '../lib/wallet.mjs';
 import {harvestAPI} from '../lib/harvest.mjs';
 import {operations,RuleError,transaction} from '../lib/operations.mjs';
 import {getDatabase} from '@netlify/database';
@@ -27,6 +28,7 @@ export default async function(request,context){
  if(!user)return response({error:'Войди в аккаунт'},401);
  if(action==='logout'&&request.method==='POST'){await db.sql`DELETE FROM sessions WHERE token_hash=${hashToken(token)}`;return response({ok:true},200,{'set-cookie':cookie('',0)})}
  const staff=['farmer','admin'].includes(user.role);
+ const walletResult=await walletAPI(db,user,action,b,request.method);if(walletResult!==null)return response(walletResult);
  const harvestResult=await harvestAPI(db,user,action,b,request.method);if(harvestResult!==null)return response(harvestResult);
  const op=await operations(db,user,action,b,request.method);if(op!==null)return response(op);
  if(action==='logout-all'&&request.method==='POST'){await db.sql`DELETE FROM sessions WHERE user_id=${user.id}`;return response({ok:true},200,{'set-cookie':cookie('',0)})}
