@@ -1,5 +1,5 @@
 // City keys retain the original Krasnodar-direction identifier for existing plots.
-const farmLocations=[{id:'krasnodar',name:'Белореченск',note:'Краснодарский край · действующая ферма'},{id:'krasnodar-city',name:'Краснодар',note:'Ферма пока не подключена'},{id:'moscow',name:'Москва',note:'Ферма пока не подключена'},{id:'petersburg',name:'Санкт-Петербург',note:'Ферма пока не подключена'}];
+const farmLocations=[{id:'krasnodar',name:'Белореченск',note:'Краснодарский край · действующая ферма'},{id:'moscow',name:'Москва',note:'Ферма пока не подключена'},{id:'petersburg',name:'Санкт-Петербург',note:'Ферма пока не подключена'}];
 function selectedFarmCity(){try{const id=localStorage.getItem('farm-city-'+(account?.id||'guest'));return farmLocations.some(c=>c.id===id)?id:'krasnodar'}catch{return 'krasnodar'}}
 function cityPlots(){return myPlots().filter(p=>(p.city_id||'krasnodar')===selectedFarmCity())}
 function changeFarmCity(id){if(!farmLocations.some(c=>c.id===id))return;try{localStorage.setItem('farm-city-'+(account?.id||'guest'),id)}catch{toast('Не удалось сохранить выбранный город')}modal.close();location.hash='home';render()}
