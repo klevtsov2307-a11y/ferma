@@ -1,0 +1,11 @@
+ALTER TABLE farm_requests ADD COLUMN IF NOT EXISTS catalog_id text;
+ALTER TABLE farm_requests ADD COLUMN IF NOT EXISTS request_key text;
+ALTER TABLE farm_requests ADD COLUMN IF NOT EXISTS quote jsonb;
+CREATE UNIQUE INDEX IF NOT EXISTS farm_requests_idempotency ON farm_requests(user_id,request_key) WHERE request_key IS NOT NULL;
+ALTER TABLE farm_preferences ADD COLUMN IF NOT EXISTS food_choices jsonb NOT NULL DEFAULT '[]';
+ALTER TABLE farm_preferences ADD COLUMN IF NOT EXISTS care_mode text NOT NULL DEFAULT 'together';
+ALTER TABLE farm_preferences ADD COLUMN IF NOT EXISTS harvest_destination text NOT NULL DEFAULT 'home';
+ALTER TABLE farm_requests ADD COLUMN IF NOT EXISTS paid_at timestamptz;
+ALTER TABLE farm_requests ADD COLUMN IF NOT EXISTS payment_entry_id uuid REFERENCES demo_wallet_entries(id);
+CREATE TABLE plot_equipment(id uuid PRIMARY KEY,request_id uuid NOT NULL UNIQUE REFERENCES farm_requests(id),plot_id integer NOT NULL REFERENCES plots(id),owner_id uuid NOT NULL REFERENCES users(id),catalog_id text NOT NULL,installed_at timestamptz NOT NULL DEFAULT now(),report text NOT NULL,is_simulation boolean NOT NULL DEFAULT true);
+ALTER TABLE public_farms ADD COLUMN IF NOT EXISTS visible boolean NOT NULL DEFAULT true;

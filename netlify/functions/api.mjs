@@ -1,3 +1,4 @@
+import {marketAPI} from '../lib/market.mjs';
 import {publicFarmAPI} from '../lib/public-farms.mjs';
 import {seasonAPI} from '../lib/season.mjs';
 import {rentalCheckout} from '../lib/rentals.mjs';
@@ -32,12 +33,21 @@ export default async function(request,context){
  if(!user)return response({error:'Войди в аккаунт'},401);
  if(action==='logout'&&request.method==='POST'){await db.sql`DELETE FROM sessions WHERE token_hash=${hashToken(token)}`;return response({ok:true},200,{'set-cookie':cookie('',0)})}
  const publicFarm=await publicFarmAPI(db,user,action,b,request.method,url);if(publicFarm!==null)return response(publicFarm);
- const staff=['farmer','admin'].includes(user.role);
+ const staff=user.role==='admin';
+ const market=await marketAPI(db,user,action,b,request.method);if(market!==null)return response(market);
  const season=await seasonAPI(db,user,action,b,request.method);if(season!==null)return response(season);
  const life=await lifecycleAPI(db,user,action,b,request.method);if(life!==null)return response(life);
  const walletResult=await walletAPI(db,user,action,b,request.method);if(walletResult!==null)return response(walletResult);
  const harvestResult=await harvestAPI(db,user,action,b,request.method);if(harvestResult!==null)return response(harvestResult);
  const op=await operations(db,user,action,b,request.method);if(op!==null)return response(op);
+ if(action==='change-password'&&request.method==='POST'){
+ const limit=await db.sql`INSERT INTO rate_limits(key,reset_at) VALUES(${hashToken(user.id+':password')},now()+interval '15 minutes') ON CONFLICT(key) DO UPDATE SET count=CASE WHEN rate_limits.reset_at<now() THEN 1 ELSE rate_limits.count+1 END,reset_at=CASE WHEN rate_limits.reset_at<now() THEN now()+interval '15 minutes' ELSE rate_limits.reset_at END RETURNING count`;
+ if(limit[0].count>10)return response({error:'Слишком много попыток. Повторите через 15 минут.'},429);
+ const saved=(await db.sql`SELECT password_hash FROM users WHERE id=${user.id}`)[0];
+ if(!await verify(b.current,saved.password_hash))return response({error:'Текущий пароль неверен'},403);
+ const next=await passwordHash(b.password);
+ await transaction(db,async c=>{await c.query('UPDATE users SET password_hash=$1 WHERE id=$2',[next,user.id]);await c.query('DELETE FROM sessions WHERE user_id=$1 AND token_hash<>$2',[user.id,hashToken(token)]);});
+ return response({ok:true});}
  if(action==='logout-all'&&request.method==='POST'){await db.sql`DELETE FROM sessions WHERE user_id=${user.id}`;return response({ok:true},200,{'set-cookie':cookie('',0)})}
  if(action==='state'&&request.method==='GET'){
  const plots=await db.sql`SELECT id,name,size,status,crop,sign,version,owner_id,growing_state,rental_monthly_kopecks,rental_simulation,city_id FROM plots ORDER BY id`;const records=staff?await db.sql`SELECT * FROM records ORDER BY created_at DESC LIMIT 1000`:await db.sql`SELECT * FROM records WHERE owner_id=${user.id} OR kind='listing' ORDER BY created_at DESC LIMIT 1000`;

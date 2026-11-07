@@ -1,0 +1,1 @@
+CREATE TABLE demo_market_orders(id uuid PRIMARY KEY,user_id uuid NOT NULL REFERENCES users(id),request_key uuid NOT NULL,items jsonb NOT NULL,amount_kopecks integer NOT NULL CHECK(amount_kopecks>0),delivery text NOT NULL,status text NOT NULL DEFAULT 'Демо: заказ оформлен',created_at timestamptz NOT NULL DEFAULT now(),UNIQUE(user_id,request_key));

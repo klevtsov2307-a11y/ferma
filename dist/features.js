@@ -1,7 +1,13 @@
 /* Application features and authenticated API adapter. Demo data never migrates into real accounts. */
 const demoRender=render,demoHome=home,demoFarmer=farmer;let account=null,cloud=null,viewFilter='all';
 state.records??=[];state.preferences??={name:'Павел',goal:20};
-const api=async(path,body)=>{const r=await fetch('/api/'+path,{method:body?'POST':'GET',headers:body?{'content-type':'application/json'}:{},credentials:'same-origin',body:body?JSON.stringify(body):undefined});let d;try{d=await r.json()}catch{throw Error('Сервер пока недоступен')}if(!r.ok)throw Error(d.error||'Ошибка сервера');return d};
+const pendingReads=new Map();
+const api=async(path,body)=>{
+ const key=(account?.id||'guest')+':'+path;
+ if(body===undefined&&pendingReads.has(key))return pendingReads.get(key);
+ const run=async()=>{const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),20000);try{const r=await fetch('/api/'+path,{method:body===undefined?'GET':'POST',headers:body===undefined?{}:{'content-type':'application/json'},credentials:'same-origin',body:body===undefined?undefined:JSON.stringify(body),signal:controller.signal});let d;try{d=await r.json()}catch{throw Error('Сервер пока недоступен. Попробуйте ещё раз.')}if(!r.ok)throw Error(d.error||'Ошибка сервера');return d}catch(e){if(e.name==='AbortError')throw Error('Ответ задерживается. Проверьте связь и повторите действие.');throw e}finally{clearTimeout(timer)}};
+ const promise=run();if(body!==undefined)return promise;pendingReads.set(key,promise);try{return await promise}finally{if(pendingReads.get(key)===promise)pendingReads.delete(key)}
+};
 const formAsync=(title,fields,handler)=>{modalForm(title,fields,()=>{});const form=$('#form');const error=document.createElement('div');error.className='form-error';error.setAttribute('role','alert');error.setAttribute('tabindex','-1');error.hidden=true;$('#fields').prepend(error);let pending=false;form.onsubmit=async e=>{e.preventDefault();if(pending)return;pending=true;const btn=e.submitter;error.hidden=true;error.textContent='';if(btn)btn.disabled=true;form.setAttribute('aria-busy','true');try{await handler(new FormData(e.target));modal.close();render()}catch(err){error.textContent=err?.message||'Не удалось выполнить действие. Попробуйте ещё раз.';error.hidden=false;error.focus();error.scrollIntoView({block:'nearest'});}finally{pending=false;if(btn)btn.disabled=false;form.removeAttribute('aria-busy')}}};
 function profile(){if(!account)return authDialog('login');formAsync('Ваш аккаунт',`<p>${esc(account.name)} · ${esc(account.login)}</p><p class="note">Роль: ${esc(account.role)}</p><button class="btn">Выйти из аккаунта</button>`,async()=>{await api('logout',{});location.reload()})}
 
