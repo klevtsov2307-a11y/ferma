@@ -1,0 +1,11 @@
+.farm-world .farm-grass{background-image:url('art/imported/grass.svg');background-size:340px;opacity:.27}
+.farm-world .parcel-land{background-image:url('art/imported/field.svg')!important;background-size:140px 110px!important}
+.farm-world .farm-parcel[data-stage=planted] .parcel-land{background-image:url('art/imported/seed.svg')!important}
+.farm-world .add-parcel .parcel-land{background-image:none!important}
+.farm-map-objects .farm-building img{aspect-ratio:1.14;max-width:250px;filter:drop-shadow(0 7px 4px #243a2924)}
+.farm-village img{width:80px}.farm-village img:nth-child(2){width:65px}
+.source-grass{position:absolute;bottom:17px;right:3px;width:43px;height:38px;pointer-events:none;opacity:.8}
+.parcel-crops .source-carrot{width:43px;height:45px;object-fit:contain}
+.farm-world .farm-fence{display:flex;justify-content:space-between;background:none;border:none;height:54px;bottom:54px;transform:none;opacity:.85}
+.farm-fence img{width:17%;height:100%;object-fit:fill}
+html[data-theme=dark] .farm-world .farm-grass{opacity:.16}
