@@ -9,3 +9,5 @@
 .farm-world .farm-fence{display:flex;justify-content:space-between;background:none;border:none;height:54px;bottom:54px;transform:none;opacity:.85}
 .farm-fence img{width:17%;height:100%;object-fit:fill}
 html[data-theme=dark] .farm-world .farm-grass{opacity:.16}
+
+.atlas-farm-art{width:110px;height:90px;object-fit:contain;pointer-events:none;filter:drop-shadow(0 5px 4px #243a2920)}.atlas-pin .atlas-marker{display:none}.atlas-pin:not(.pin-0) .atlas-farm-art{filter:grayscale(.65);opacity:.65}@media(max-width:700px){.atlas-farm-art{width:75px;height:65px}}

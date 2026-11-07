@@ -14,3 +14,5 @@ No LICENSE or asset-specific permission notice was found in the source repositor
 This attribution is not a license grant. Commercial redistribution permissions
 and third-party asset provenance remain unverified. The site remains private.
 Music and executables were not imported.
+
+Additional adaptation: house variants 2, 5 and 7; a single red vegetable with its leaves extracted from disconnected mesh components 71/72 of farm_lvl3.FBX, rendered as tomato-single.svg. These assets do not establish any new license permissions.
