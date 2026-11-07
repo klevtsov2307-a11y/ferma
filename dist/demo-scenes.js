@@ -23,6 +23,6 @@ function demoGardenDress(){
  if(plotRoomTab==='build')document.querySelector('[role=tabpanel]')?.insertAdjacentHTML('afterbegin',`<section class="panel demo-installed"><h2>В этом демопримере установлено</h2><p>${demoGardenEquipment(s)}</p><p>Без списаний и фиктивных актов монтажа. Настоящие улучшения заказываются ниже.</p></section>`);
  if(plotRoomTab==='harvest')document.querySelector('[role=tabpanel]')?.insertAdjacentHTML('afterbegin',`<section class="panel demo-installed"><h2>${s.stage==='harvest_ready'?'🧺 Урожай на рисунке созрел':'🌱 Урожай ещё растёт'}</h2><p>${esc(s.crop)}. Деморисунок не создаёт партию на складе. Фактический сбор подтвердит садовник.</p></section>`);
 }
-farmViews.push(demoGardenDress);
+farmViews.add(demoGardenDress);
 const baseDemoFieldMenu=farmBedMenu;
 farmBedMenu=function(id){baseDemoFieldMenu(id);const s=demoGardenScene(myPlots().find(p=>p.id===id)),panel=document.querySelector('.field-menu');if(s&&panel)panel.querySelector('.field-menu-head')?.insertAdjacentHTML('afterend',`<div class="demo-menu-summary"><b>${esc(s.crop)} · ${demoGardenLabel(s)}</b><p>${demoGardenEquipment(s)}</p><small>Демонстрация оформления. Реальные работы — по плану садовника.</small></div>`)};
