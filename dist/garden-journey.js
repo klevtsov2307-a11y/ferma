@@ -20,7 +20,7 @@ farmViews.add(()=>{
  if(account&&((location.hash||'#home')==='#home'||currentRoomPlot())){const button=document.createElement('button');button.className='garden-guide';button.innerHTML='<span>🦊</span><b>К моей корзине</b>';button.onclick=gardenJourney;button.setAttribute('aria-label','Открыть помощника: путь к моей корзине');document.body.append(button)}
  if(account?.role==='admin'&&location.hash==='#farmer')document.querySelector('#app')?.insertAdjacentHTML('afterbegin','<button class="btn light" onclick="farmCostPreview()">🧮 Рассчитать стоимость работы</button>');
  if(account&&location.hash==='#settings')document.querySelector('#app')?.insertAdjacentHTML('beforeend',`<section class="panel"><h2>🌳 Кто видит моё хозяйство</h2><p>На карте видны название, количество грядок и стадии роста. Камеры, баланс и доставка остаются личными.</p><button class="btn light" onclick="setFarmVisibility(false)">Скрыть с общей карты</button> <button class="btn light" onclick="setFarmVisibility(true)">Показывать на карте</button></section>`);
- const p=currentRoomPlot();if(p){const hero=document.querySelector('.room-hero');const next=nextGardenStep(p);hero?.insertAdjacentHTML('afterend',`<aside class="garden-next" role="status"><span>${next.icon}</span><div><strong>${next.title}</strong><p>${next.text}</p></div></aside>`)}
+ const p=currentRoomPlot();if(p){const hero=document.querySelector('.room-hero');const next=nextGardenStep(p);hero?.insertAdjacentHTML('afterend',`<div class="garden-next" role="status"><span>${next.icon}</span><div><strong>${next.title}</strong><p>${next.text}</p></div></div>`)}
 });
 render();
 
