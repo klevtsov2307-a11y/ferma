@@ -33,6 +33,7 @@ if(action==='life-upgrade-pay'){
 const r=(await q('SELECT * FROM farm_requests WHERE id=$1 FOR UPDATE',[b.id]))[0];
 requireValue(r?.user_id===user.id&&r.catalog_id,'Нет доступа к улучшению');
 if(r.paid_at)return {ok:true};
+const plot=(await q('SELECT owner_id FROM plots WHERE id=$1 FOR SHARE',[r.plot_id]))[0];requireValue(plot?.owner_id===user.id,'Грядка больше не принадлежит вашему хозяйству');await checkLease(c,r.plot_id,user.id);
 requireValue(r.status==='reviewed'&&r.quote?.confirmed,'Сначала ферма должна подтвердить смету');
 requireValue(b.amount===r.quote.amount_kopecks,'Смета изменилась. Откройте её заново');
 const price=r.quote.amount_kopecks;
