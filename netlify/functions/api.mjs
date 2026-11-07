@@ -1,3 +1,4 @@
+import {publicFarmAPI} from '../lib/public-farms.mjs';
 import {seasonAPI} from '../lib/season.mjs';
 import {rentalCheckout} from '../lib/rentals.mjs';
 import {lifecycleAPI} from '../lib/lifecycle.mjs';
@@ -30,6 +31,7 @@ export default async function(request,context){
  if(action==='me')return response({user:user||null});
  if(!user)return response({error:'Войди в аккаунт'},401);
  if(action==='logout'&&request.method==='POST'){await db.sql`DELETE FROM sessions WHERE token_hash=${hashToken(token)}`;return response({ok:true},200,{'set-cookie':cookie('',0)})}
+ const publicFarm=await publicFarmAPI(db,user,action,b,request.method,url);if(publicFarm!==null)return response(publicFarm);
  const staff=['farmer','admin'].includes(user.role);
  const season=await seasonAPI(db,user,action,b,request.method);if(season!==null)return response(season);
  const life=await lifecycleAPI(db,user,action,b,request.method);if(life!==null)return response(life);
