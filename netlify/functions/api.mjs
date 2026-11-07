@@ -1,3 +1,4 @@
+import {journeyAPI} from '../lib/journeys.mjs';
 import {marketAPI} from '../lib/market.mjs';
 import {publicFarmAPI} from '../lib/public-farms.mjs';
 import {seasonAPI} from '../lib/season.mjs';
@@ -34,6 +35,7 @@ export default async function(request,context){
  if(action==='logout'&&request.method==='POST'){await db.sql`DELETE FROM sessions WHERE token_hash=${hashToken(token)}`;return response({ok:true},200,{'set-cookie':cookie('',0)})}
  const publicFarm=await publicFarmAPI(db,user,action,b,request.method,url);if(publicFarm!==null)return response(publicFarm);
  const staff=user.role==='admin';
+ const journey=await journeyAPI(db,user,action,b,request.method);if(journey!==null)return response(journey);
  const market=await marketAPI(db,user,action,b,request.method);if(market!==null)return response(market);
  const season=await seasonAPI(db,user,action,b,request.method);if(season!==null)return response(season);
  const life=await lifecycleAPI(db,user,action,b,request.method);if(life!==null)return response(life);
@@ -50,7 +52,7 @@ export default async function(request,context){
  return response({ok:true});}
  if(action==='logout-all'&&request.method==='POST'){await db.sql`DELETE FROM sessions WHERE user_id=${user.id}`;return response({ok:true},200,{'set-cookie':cookie('',0)})}
  if(action==='state'&&request.method==='GET'){
- const plots=await db.sql`SELECT id,name,size,status,crop,sign,version,owner_id,growing_state,rental_monthly_kopecks,rental_simulation,city_id FROM plots ORDER BY id`;const records=staff?await db.sql`SELECT * FROM records ORDER BY created_at DESC LIMIT 1000`:await db.sql`SELECT * FROM records WHERE owner_id=${user.id} OR kind='listing' ORDER BY created_at DESC LIMIT 1000`;
+ const plots=await db.sql`SELECT id,name,size,width_m,length_m,status,crop,sign,version,owner_id,CASE WHEN rental_simulation THEN COALESCE(demo_growing_state,growing_state) ELSE growing_state END AS growing_state,rental_monthly_kopecks,rental_simulation,city_id FROM plots ORDER BY id`;const records=staff?await db.sql`SELECT * FROM records ORDER BY created_at DESC LIMIT 1000`:await db.sql`SELECT * FROM records WHERE owner_id=${user.id} OR kind='listing' ORDER BY created_at DESC LIMIT 1000`;
  const myRentals=await db.sql`SELECT plot_id,starts_at,ends_at,price_kopecks,status,is_simulation FROM rentals WHERE user_id=${user.id} ORDER BY created_at DESC`;
  return response({user,rentals:myRentals,plots:plots.map(p=>({...p,name:p.owner_id===user.id||staff?p.name:'Грядка №'+p.id,crop:p.owner_id===user.id||staff?p.crop:'',sign:p.owner_id===user.id||staff?p.sign:'',mine:p.owner_id===user.id,owner_id:undefined})),records})}
  if(action==='claim'&&request.method==='POST')return response(await rentalCheckout(db,user,b));
@@ -58,7 +60,7 @@ export default async function(request,context){
  if(action==='plot'&&request.method==='POST'){
  const rows=await db.sql`SELECT * FROM plots WHERE id=${Number(b.id)}`;const p=rows[0];if(!p||!canManage(user,p))return response({error:'Нет доступа к грядке'},403);
  const name=text(b.name,60)||p.name,sign=text(b.sign,40),crop=text(b.crop,60);const updated=await db.sql`UPDATE plots SET name=${name},sign=${sign},crop=${crop},version=version+1 WHERE id=${p.id} AND version=${Number(b.version)} RETURNING id`;return updated.length?response({ok:true}):response({error:'Грядка изменилась. Обнови страницу.'},409)}
- if(action==='camera'&&request.method==='GET'){const rows=await db.sql`SELECT * FROM plots WHERE id=${Number(url.searchParams.get('id'))}`;const p=rows[0];if(!p||!canManage(user,p))return response({error:'Нет доступа'},403);return response({url:p.camera_url||null})}
+ if(action==='camera'&&request.method==='GET'){const rows=await db.sql`SELECT * FROM plots WHERE id=${Number(url.searchParams.get('id'))}`;const p=rows[0];const assigned=p&&(await db.sql`SELECT id FROM work_orders WHERE plot_id=${p.id} AND assigned_to=${user.id} AND status NOT IN ('done','cancelled') LIMIT 1`).length;if(!p||!canManage(user,p)&&!assigned)return response({error:'Нет доступа'},403);return response({url:p.camera_url||null})}
  if(action==='configure-plot'&&request.method==='POST'){
  if(!staff)return response({error:'Нужна роль фермера'},403);const camera=safeCamera(b.camera);const result=await db.sql`UPDATE plots SET camera_url=${camera},status=CASE WHEN owner_id IS NULL THEN ${b.available?'available':'unavailable'} ELSE status END,version=version+1 WHERE id=${Number(b.id)} RETURNING id`;return response({ok:!!result.length})}
  if(action==='record'&&request.method==='POST'){
