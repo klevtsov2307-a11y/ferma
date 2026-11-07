@@ -38,7 +38,7 @@ export default async function(request,context){
  const op=await operations(db,user,action,b,request.method);if(op!==null)return response(op);
  if(action==='logout-all'&&request.method==='POST'){await db.sql`DELETE FROM sessions WHERE user_id=${user.id}`;return response({ok:true},200,{'set-cookie':cookie('',0)})}
  if(action==='state'&&request.method==='GET'){
- const plots=await db.sql`SELECT id,name,size,status,crop,sign,version,owner_id,growing_state,rental_monthly_kopecks,rental_simulation FROM plots ORDER BY id`;const records=staff?await db.sql`SELECT * FROM records ORDER BY created_at DESC LIMIT 1000`:await db.sql`SELECT * FROM records WHERE owner_id=${user.id} OR kind='listing' ORDER BY created_at DESC LIMIT 1000`;
+ const plots=await db.sql`SELECT id,name,size,status,crop,sign,version,owner_id,growing_state,rental_monthly_kopecks,rental_simulation,city_id FROM plots ORDER BY id`;const records=staff?await db.sql`SELECT * FROM records ORDER BY created_at DESC LIMIT 1000`:await db.sql`SELECT * FROM records WHERE owner_id=${user.id} OR kind='listing' ORDER BY created_at DESC LIMIT 1000`;
  const myRentals=await db.sql`SELECT plot_id,starts_at,ends_at,price_kopecks,status,is_simulation FROM rentals WHERE user_id=${user.id} ORDER BY created_at DESC`;
  return response({user,rentals:myRentals,plots:plots.map(p=>({...p,name:p.owner_id===user.id||staff?p.name:'Грядка №'+p.id,crop:p.owner_id===user.id||staff?p.crop:'',sign:p.owner_id===user.id||staff?p.sign:'',mine:p.owner_id===user.id,owner_id:undefined})),records})}
  if(action==='claim'&&request.method==='POST')return response(await rentalCheckout(db,user,b));
