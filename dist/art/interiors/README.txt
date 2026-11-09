@@ -1,0 +1,4 @@
+Farm-off pantry-room-v1.jpg
+Original project asset generated with the built-in image generation tool, 2026-11-09. User supplied a pantry illustration as a conceptual reference only; it was not copied into the site.
+Prompt: Original portrait 2:3 semi-realistic 3D cozy pantry interior, eye-level rear wall, warm lamp, oak timber and plaster walls, wooden floor, wooden shelving left, glass-door refrigerator right. Three aligned empty shelves per side, natural material grain and dimensional warm lighting. No food, text, logos or watermark. Leave interiors empty for real inventory overlays. Full composition and implementation were checked at iPhone viewport size.
+Dynamic crop names, masses, reservations and demo labels are rendered separately by the application. The room image contains no inventory.
