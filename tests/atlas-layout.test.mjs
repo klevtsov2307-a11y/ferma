@@ -1,0 +1,4 @@
+import {test} from 'node:test';import assert from 'node:assert/strict';import vm from 'node:vm';import {readFileSync} from 'node:fs';
+const context=vm.createContext({farmViews:new Set()});vm.runInContext(readFileSync(new URL('../dist/atlas-camera.js',import.meta.url),'utf8'),context);
+test('map expands with more farms and keeps a slot for every farm',()=>{let previous=0;for(const count of [0,1,3,10,50,200]){const x=context.atlasSceneLayout(count);assert.ok(x.columns*x.rows>=count);assert.ok(x.width*x.height>=previous);previous=x.width*x.height;for(let i=0;i<count;i++){assert.ok(250+(i%x.columns)*340+125<x.width);assert.ok(230+Math.floor(i/x.columns)*290+115<x.height)}}});
+test('city map fits all three cities',()=>{const x=context.atlasSceneLayout(3,true);assert.equal(x.columns,2);assert.equal(x.rows,2)});
