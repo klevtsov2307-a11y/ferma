@@ -1,5 +1,5 @@
 let opsData=null;const statusLabels={requested:'Заявка',quoted:'Сроки предложены',awaiting_payment:'Ожидает оплаты',queued:'В очереди',on_way:'Садовник идёт',working:'Выполняется',review:'Проверка отчёта',done:'Завершено',cancelled:'Отменено'};
-const growingLabels={unchecked:'Нужен осмотр',empty:'Нужна подготовка',ready:'Готова к посадке',planted:'Посеяна',growing:'Растёт',harvest_ready:'Готова к сбору',finished:'Цикл завершён'};
+const growingLabels={unchecked:'Новая грядка',empty:'Нужна подготовка',ready:'Готова к посадке',planted:'Посеяна',growing:'Растёт',harvest_ready:'Готова к сбору',finished:'Цикл завершён'};
 const money=n=>n===null?'Тариф не задан':new Intl.NumberFormat('ru-RU',{style:'currency',currency:'RUB'}).format(n/100);
 const fmt=d=>d?new Date(d).toLocaleString('ru-RU'):'После согласования';
 const previousRefresh=refreshCloud,previousRender=render;

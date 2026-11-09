@@ -25,7 +25,7 @@ if(b.catalog_id){
  const prior=(await q('SELECT id FROM farm_requests WHERE user_id=$1 AND request_key=$2',[user.id,b.key]))[0];if(prior)return {id:prior.id,ok:true};
  const incompatible=['wood','concrete'].includes(upgrade.id)?['wood','concrete']:['cover','tunnel','greenhouse'].includes(upgrade.id)?['cover','tunnel','greenhouse']:[upgrade.id];
  requireValue(!(await q("SELECT id FROM farm_requests WHERE plot_id=$1 AND catalog_id=ANY($2::text[]) AND status<>'cancelled' AND NOT(status='done' AND EXISTS(SELECT 1 FROM plot_equipment e WHERE e.request_id=farm_requests.id AND e.condition='retired'))",[plot.id,incompatible])).length,'Такое улучшение уже установлено или ожидает выполнения');
- if(['wood','concrete','greenhouse'].includes(upgrade.id))requireValue(['empty','ready','finished'].includes(plot.rental_simulation&&plot.demo_growing_state?plot.demo_growing_state:plot.growing_state),'Бортики устанавливаем до посадки или после сбора урожая');
+ if(['wood','concrete','greenhouse'].includes(upgrade.id))requireValue(['unchecked','empty','ready','finished'].includes(plot.rental_simulation&&plot.demo_growing_state?plot.demo_growing_state:plot.growing_state),'Бортики устанавливаем до посадки или после сбора урожая');
  b.kind=upgrade.kind;quote=estimateUpgrade(upgrade,plot);
 }
 requireValue(requestKinds[b.kind]&&txt(b.details).length>=5,'Укажите тип и подробности');await q('INSERT INTO farm_requests(id,user_id,plot_id,kind,details,catalog_id,request_key,quote) VALUES($1,$2,$3,$4,$5,$6,$7,$8)',[randomUUID(),user.id,b.plot,b.kind,txt(b.details),upgrade?.id||null,b.key,quote?JSON.stringify(quote):null]);return {ok:true}}
@@ -59,7 +59,7 @@ if(r.catalog_id){
  await q('UPDATE farm_requests SET quote=$1 WHERE id=$2',[JSON.stringify(quote),r.id]);
  }
  if(b.status==='done'){
- requireValue(r.paid_at,'Сначала владелец должен согласовать и оплатить демосмету');const plot=(await q('SELECT * FROM plots WHERE id=$1 FOR SHARE',[r.plot_id]))[0];requireValue(plot?.owner_id===r.user_id,'Владелец участка изменился');await checkLease(c,r.plot_id,r.user_id);if(['wood','concrete','greenhouse'].includes(r.catalog_id))requireValue(['empty','ready','finished'].includes(plot.rental_simulation&&plot.demo_growing_state?plot.demo_growing_state:plot.growing_state),'Посадки изменились: пересогласуйте монтаж');
+ requireValue(r.paid_at,'Сначала владелец должен согласовать и оплатить демосмету');const plot=(await q('SELECT * FROM plots WHERE id=$1 FOR SHARE',[r.plot_id]))[0];requireValue(plot?.owner_id===r.user_id,'Владелец участка изменился');await checkLease(c,r.plot_id,r.user_id);if(['wood','concrete','greenhouse'].includes(r.catalog_id))requireValue(['unchecked','empty','ready','finished'].includes(plot.rental_simulation&&plot.demo_growing_state?plot.demo_growing_state:plot.growing_state),'Посадки изменились: пересогласуйте монтаж');
  await q('INSERT INTO plot_equipment(id,request_id,plot_id,owner_id,catalog_id,report) VALUES($1,$2,$3,$4,$5,$6)',[randomUUID(),r.id,r.plot_id,r.user_id,r.catalog_id,txt(b.report)]);
  }
  if(b.status==='cancelled'&&r.paid_at){
