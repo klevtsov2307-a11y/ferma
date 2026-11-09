@@ -52,7 +52,7 @@ test('planting reserves purchased supplies and cancellation releases them withou
 }));
 test('delivery quote needs customer consent, payment replays once and cancellation refunds once',()=>fixture(async({pg,db,user,admin})=>{
  const batch=id();await pg.query("INSERT INTO harvest_batches(id,owner_id,plot_id,crop,harvested_on,received_grams,balance_grams,verified,expires_at) VALUES($1,$2,1,'Томаты',current_date,1000,1000,true,now()+interval '3 days')",[batch,user.id]);
- const d=await lifecycleAPI(db,user,'life-delivery',{key:id(),kind:'home',recipient:'Тест',address:'Тестовый адрес',contact:'Тестовый контакт',items:[{id:batch,grams:500}]},'POST');
+ await lifecycleAPI(db,user,'life-facility',{city:'krasnodar',kind:'delivery',accepted:true,version:'demo-delivery-1',signature:'Test'},'POST');const d=await lifecycleAPI(db,user,'life-delivery',{key:id(),kind:'home',recipient:'Тест',address:'Тестовый адрес',contact:'Тестовый контакт',items:[{id:batch,grams:500}]},'POST');
  const call=(u,a,b)=>journeyAPI(db,u,'journey-'+a,b,'POST');await call(admin,'delivery-quote',{id:d.id,price:25000,expected:new Date(Date.now()+86400000).toISOString(),conditions:'Адрес проверен, упаковка и условия перевозки согласованы'});
  await assert.rejects(call(user,'delivery-pay',{id:d.id,version:0}));
  const before=Number((await pg.query('SELECT balance_kopecks FROM demo_wallets WHERE user_id=$1',[user.id])).rows[0].balance_kopecks);

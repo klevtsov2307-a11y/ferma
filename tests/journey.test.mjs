@@ -17,7 +17,7 @@ test('rehearsal: rental → crop cycle → partial harvest → acceptance → ev
  await assert.rejects(harvestAPI(db,user,'quality-assess',{id:batch.id,values},'POST'));
  await harvestAPI(db,admin,'quality-assess',{id:batch.id,values},'POST');
  const passport=await harvestAPI(db,user,'passport',{id:batch.id},'POST');assert.equal(passport.rating.score,80);assert.equal(passport.works.length,0);
- const delivery=await life('delivery',basket);await life('delivery-update',{id:delivery.id,status:'confirmed',expected:new Date(Date.now()+3600000).toISOString()},admin);await life('delivery-update',{id:delivery.id,status:'shipped',packing:'Проверены комплектация, тара и условия перевозки'},admin);await life('delivery-update',{id:delivery.id,status:'delivered'});
+ await life('facility',{city:'krasnodar',kind:'delivery',accepted:true,version:'demo-delivery-1',signature:'Test'});const delivery=await life('delivery',basket);await life('delivery-update',{id:delivery.id,status:'confirmed',expected:new Date(Date.now()+3600000).toISOString()},admin);await life('delivery-update',{id:delivery.id,status:'shipped',packing:'Проверены комплектация, тара и условия перевозки'},admin);await life('delivery-update',{id:delivery.id,status:'delivered'});
  const result=await lifecycleAPI(db,user,'lifecycle',{},'GET');assert.equal(result.deliveries[0].status,'delivered');assert.equal((await pg.query('SELECT balance_grams FROM harvest_batches WHERE id=$1',[batch.id])).rows[0].balance_grams,500);
  }finally{await pg.close()}
 });
