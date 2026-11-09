@@ -10,7 +10,7 @@ import {harvestAPI} from '../lib/harvest.mjs';
 import {operations,RuleError,transaction} from '../lib/operations.mjs';
 import {getDatabase} from '@netlify/database';
 import {randomUUID,randomBytes} from 'node:crypto';
-import {hashToken,text,loginName,passwordHash,verify,canManage,safeCamera} from '../lib/domain.mjs';
+import {hashToken,text,accountLogin,passwordHash,verify,canManage,safeCamera} from '../lib/domain.mjs';
 export const config={path:'/api/*'};
 const response=(data,status=200,extra={})=>new Response(JSON.stringify(data),{status,headers:{'content-type':'application/json','cache-control':'no-store',...extra}});
 const cookie=(token,age)=>`farm_session=${token}; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=${age}`;
@@ -25,9 +25,9 @@ export default async function(request,context){
  if(['register','login'].includes(action)&&request.method==='POST'){
  const key=hashToken((context.ip||'unknown')+':'+action),limit=await db.sql`INSERT INTO rate_limits(key,reset_at) VALUES(${key},now()+interval '15 minutes') ON CONFLICT(key) DO UPDATE SET count=CASE WHEN rate_limits.reset_at<now() THEN 1 ELSE rate_limits.count+1 END,reset_at=CASE WHEN rate_limits.reset_at<now() THEN now()+interval '15 minutes' ELSE rate_limits.reset_at END RETURNING count`;
  if(limit[0].count>15)return response({error:'Слишком много попыток. Попробуй через 15 минут.'},429);
- const login=loginName(b.login);let u;
- if(action==='register'){const ph=await passwordHash(b.password),name=text(b.name,60)||login;const rows=await db.sql`INSERT INTO users(id,login,name,password_hash) VALUES(${randomUUID()},${login},${name},${ph}) ON CONFLICT(login) DO NOTHING RETURNING id,login,name,role`;if(!rows.length)return response({error:'Этот логин уже занят'},409);u=rows[0]}
- else{const rows=await db.sql`SELECT * FROM users WHERE login=${login}`;u=rows[0];const dummy='00000000000000000000000000000000:'+('00'.repeat(64));if(!await verify(b.password,u?.password_hash||dummy)||!u)return response({error:'Неверный логин или пароль'},401)}
+ const login=accountLogin(b.login,action==='register');let u;
+ if(action==='register'){const ph=await passwordHash(b.password),name=text(b.name,60)||login;const rows=await db.sql`INSERT INTO users(id,login,name,password_hash) VALUES(${randomUUID()},${login},${name},${ph}) ON CONFLICT(login) DO NOTHING RETURNING id,login,name,role`;if(!rows.length)return response({error:'Эта почта уже зарегистрирована. Войдите в аккаунт'},409);u=rows[0]}
+ else{const rows=await db.sql`SELECT * FROM users WHERE login=${login}`;u=rows[0];const dummy='00000000000000000000000000000000:'+('00'.repeat(64));if(!await verify(b.password,u?.password_hash||dummy)||!u)return response({error:'Неверная почта (или прежний логин) либо пароль'},401)}
  const token=randomBytes(32).toString('hex');await db.sql`INSERT INTO sessions(token_hash,user_id,expires_at) VALUES(${hashToken(token)},${u.id},now()+interval '7 days')`;return response({user:{id:u.id,name:u.name,login:u.login,role:u.role}},200,{'set-cookie':cookie(token,604800)})}
  const token=request.headers.get('cookie')?.match(/(?:^|;\s*)farm_session=([a-f0-9]{64})(?:;|$)/)?.[1];let user;
  if(token){const rows=await db.sql`SELECT u.id,u.name,u.login,u.role FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.token_hash=${hashToken(token)} AND s.expires_at>now()`;user=rows[0]}

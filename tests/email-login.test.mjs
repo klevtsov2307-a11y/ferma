@@ -1,0 +1,3 @@
+import {test} from 'node:test';import assert from 'node:assert/strict';import {accountLogin,emailLogin} from '../netlify/lib/domain.mjs';
+test('email login normalizes case and whitespace',()=>{assert.equal(emailLogin('  User+farm@Example.COM '),'user+farm@example.com');assert.equal(accountLogin('000kl000'),'000kl000')});
+test('new registrations require valid email and reject truncation',()=>{for(const value of ['000kl000','a@b','a b@example.com','a..b@example.com','a'.repeat(255)+'@example.com'])assert.throws(()=>accountLogin(value,true));assert.equal(accountLogin('farm@example.ru',true),'farm@example.ru')});
