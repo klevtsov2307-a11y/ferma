@@ -1,3 +1,4 @@
+import {plantingAPI} from '../lib/plant-packages.mjs';
 import {journeyAPI} from '../lib/journeys.mjs';
 import {marketAPI} from '../lib/market.mjs';
 import {publicFarmAPI} from '../lib/public-farms.mjs';
@@ -35,6 +36,7 @@ export default async function(request,context){
  if(action==='logout'&&request.method==='POST'){await db.sql`DELETE FROM sessions WHERE token_hash=${hashToken(token)}`;return response({ok:true},200,{'set-cookie':cookie('',0)})}
  const publicFarm=await publicFarmAPI(db,user,action,b,request.method,url);if(publicFarm!==null)return response(publicFarm);
  const staff=user.role==='admin';
+ const planting=await plantingAPI(db,user,action,b,request.method);if(planting!==null)return response(planting);
  const journey=await journeyAPI(db,user,action,b,request.method);if(journey!==null)return response(journey);
  const market=await marketAPI(db,user,action,b,request.method);if(market!==null)return response(market);
  const season=await seasonAPI(db,user,action,b,request.method);if(season!==null)return response(season);
