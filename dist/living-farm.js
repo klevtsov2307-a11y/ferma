@@ -7,7 +7,7 @@ function cropDrawing(crop,state){
 }
 function dressFarm(){
  document.querySelectorAll('.farm-parcel[onclick^="farmBedMenu"]').forEach(el=>{
- const id=Number(el.getAttribute('onclick').match(/\d+/)[0]),p=myPlots().find(x=>x.id===id);if(!p)return;
+ const id=Number(el.getAttribute('onclick').match(/\d+/)[0]),original=myPlots().find(x=>x.id===id);if(!original)return;const p=typeof bedPresentation==='function'?bedPresentation(original):original;el.classList.toggle('bare-soil',!['planted','growing','harvest_ready'].includes(p.growing_state));el.classList.toggle('has-plants',['planted','growing','harvest_ready'].includes(p.growing_state));
  el.dataset.plot=id;el.classList.toggle('parcel-large',Number(p.size)>=7);el.dataset.stage=p.growing_state||'unchecked';
  const crops=el.querySelector('.parcel-crops');if(crops&&['planted','growing','harvest_ready'].includes(p.growing_state))crops.innerHTML=Array.from({length:Math.min(15,Math.max(3,Math.round(Number(p.size)*2)))},()=>`<i>${cropDrawing(p.crop||'',p.growing_state)}</i>`).join('');
  if(lifeData?.equipment?.some(r=>Number(r.plot_id)===id&&['cover','tunnel','greenhouse'].includes(r.catalog_id)&&r.condition!=='retired'&&(!r.is_simulation||p.rental_simulation)))el.querySelector('.parcel-land').insertAdjacentHTML('beforeend','<span class="confirmed-cover" aria-label="Укрытие в схеме хозяйства; демоустановки помечены в истории"></span>');
@@ -15,7 +15,7 @@ function dressFarm(){
 }
 function closeFieldMenu(restore=false){const panel=document.querySelector('.field-menu'),id=panel?.dataset.plot;panel?.remove();document.querySelectorAll('.selected-parcel').forEach(e=>{e.classList.remove('selected-parcel');e.setAttribute('aria-expanded','false')});if(restore&&id)document.querySelector(`[data-plot="${id}"].farm-parcel`)?.focus()}
 farmBedMenu=function(id){
- const p=myPlots().find(x=>x.id===id);if(!p)return;
+ const original=myPlots().find(x=>x.id===id);if(!original)return;const p=typeof bedPresentation==='function'?bedPresentation(original):original;el.classList.toggle('bare-soil',!['planted','growing','harvest_ready'].includes(p.growing_state));el.classList.toggle('has-plants',['planted','growing','harvest_ready'].includes(p.growing_state));
  closeFieldMenu();const el=document.querySelector(`.farm-parcel[data-plot="${id}"]`);el?.classList.add('selected-parcel');el?.setAttribute('aria-expanded','true');
  const panel=document.createElement('section');panel.className='field-menu';panel.dataset.plot=id;panel.setAttribute('role','dialog');panel.setAttribute('aria-label','Действия с грядкой '+p.name);
  const primary=({unchecked:['prepare','🪏','Подготовить'],empty:['prepare','🪏','Подготовить'],finished:['prepare','🪏','Подготовить'],ready:['plant','🌱','Посадить'],planted:['inspect','🔎','Посмотреть уход'],growing:['inspect','🔎','Посмотреть уход'],harvest_ready:['harvest','🧺','Собрать']})[p.growing_state]||['inspect','🔎','Осмотреть'];

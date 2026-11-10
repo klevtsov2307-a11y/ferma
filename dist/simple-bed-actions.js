@@ -1,5 +1,7 @@
 /* Small, contextual dialogs; the server still validates every farm request. */
 function simpleBedReason(p,code){
+ const view=bedPresentation(p);if(view.preview)return 'Это демонстрация посадок. Фактическое состояние уточнит садовник.';
+ p=view;
  if(code==='harvest'&&p.growing_state!=='harvest_ready')return ['planted','growing'].includes(p.growing_state)?'Урожай ещё растёт. Садовник подтвердит, когда его можно собирать.':'На грядке пока нет созревшего урожая.';
  const s=opsData?.services.find(s=>s.code===code);if(!s?.enabled||s.price_kopecks===null)return 'Услуга пока недоступна';
  if((opsData?.orders||[]).some(o=>Number(o.plot_id)===Number(p.id)&&!['done','cancelled'].includes(o.status)))return 'Сначала дождитесь текущей работы';

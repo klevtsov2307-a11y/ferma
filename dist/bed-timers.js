@@ -1,5 +1,6 @@
 /* Work deadlines are not completion events. Only accepted reports show a check. */
 function bedWorkIndicator(plot,orders,now=Date.now()){
+ if(plot.rental_simulation&&plot.demo_growing_state)plot={...plot,growing_state:plot.demo_growing_state};
  const rows=orders.filter(o=>Number(o.plot_id)===Number(plot.id)&&o.status!=='cancelled').sort((a,b)=>Date.parse(b.created_at)-Date.parse(a.created_at));
  const active=rows.find(o=>o.status!=='done');
  if(active){const o=active,deadline=Date.parse(o.finish_by),seconds=Math.ceil((deadline-now)/1000);

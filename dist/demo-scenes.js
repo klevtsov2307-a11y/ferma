@@ -5,7 +5,7 @@ function demoGardenEquipment(s){return `${s.border==='concrete'?'🧱 Бетон
 function demoGardenPlants(s,count){return Array.from({length:count},()=>`<i>${cropDrawing(s.crop,s.stage)}${s.stage==='growing'?'<span class="demo-flower">✿</span>':''}</i>`).join('')}
 function demoGardenDress(){
  for(const p of myPlots()){
-  const s=demoGardenScene(p);if(!s)continue;
+  const s=typeof bedPresentation==='function'?bedPresentation(p).scene:demoGardenScene(p);if(!s)continue;
   const el=document.querySelector(`.farm-parcel[data-plot="${p.id}"]`);if(!el)continue;
   el.classList.remove('bare-soil');el.classList.add('has-plants','demo-garden');el.dataset.stage=s.stage;el.dataset.border=s.border;
   el.setAttribute('aria-label',`${p.name}: ${s.crop}, ${demoGardenLabel(s)}. ${demoGardenEquipment(s)}. Демонстрация`);
