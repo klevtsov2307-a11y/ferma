@@ -1,0 +1,4 @@
+import {test} from 'node:test';import assert from 'node:assert/strict';import vm from 'node:vm';import {readFileSync} from 'node:fs';
+const source=readFileSync(new URL('../dist/desktop-atlas.js',import.meta.url),'utf8'),ctx=vm.createContext({});vm.runInContext(source.slice(0,source.indexOf('function desktopAtlasTerrain')),ctx);
+test('desktop maps fill viewport and expand with larger farm communities',()=>{for(const [w,h] of [[1280,720],[1920,1080]]){let area=0;for(const n of [3,10,50,200]){const l=ctx.desktopAtlasLayout(n,false,w,h);assert.ok(l.width>=w&&l.height>=h);assert.ok(l.columns*l.rows>=n);assert.ok(l.width*l.height>=area);area=l.width*l.height;for(let i=0;i<n;i++){const [x,y]=ctx.desktopAtlasPoint(i,n,false);assert.ok(x>=.14&&x<=.87);assert.ok(y>=.22&&y<=.76)}}}});
+test('all cities remain within the visible schematic map',()=>{for(let i=0;i<3;i++){const [x,y]=ctx.desktopAtlasPoint(i,3,true);assert.ok(x>.1&&x<.9);assert.ok(y>.2&&y<.8)}});
