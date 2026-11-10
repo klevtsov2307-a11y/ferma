@@ -1,0 +1,36 @@
+/* Map labels stay inside the bed menu; the scene speaks through its artwork. */
+.farm-world .farm-parcel:not(.add-parcel) :is(.parcel-sign,.parcel-meta),
+.farm-world .farm-parcel .parcel-status>small{display:none!important}
+.farm-world .bare-soil>.parcel-status{display:none!important}
+.farm-world .demo-garden .parcel-land{background:none!important;background-image:none!important}
+.farm-world .farm-parcel{justify-content:center;gap:0;transition:background .2s;isolation:isolate}
+.farm-world .farm-parcel:hover{background:#fff6ca28}
+.farm-world .farm-parcel:focus-visible{outline:4px solid #fff3a2;outline-offset:-9px}
+.farm-world .farm-parcel .parcel-land{margin:4px auto 8px;filter:drop-shadow(0 9px 5px #355d3030);border-color:#e9b86a}
+.farm-world .farm-parcel.demo-garden .parcel-land{width:236px!important;height:178px!important;margin:-2px auto -8px;border:0!important;box-shadow:none!important}
+.farm-world .garden-illustration{filter:drop-shadow(0 7px 3px #365b2b26) saturate(1.16)}
+.farm-world .farm-parcel:hover .garden-illustration{filter:drop-shadow(0 10px 4px #365b2b38) saturate(1.2)}
+.farm-world .parcel-status{margin-top:0;max-width:210px;line-height:1.2;text-align:center;color:#294b30}
+.farm-world .demo-garden .parcel-status{display:grid;gap:7px}
+.farm-world .demo-garden .parcel-status b{font-size:20px!important;letter-spacing:-.35px;color:#28513a;text-shadow:0 1px #f4ffc480}
+.farm-world .scene-stage{font-size:12px!important;background:linear-gradient(#f7ffe8,#d9efb9);border:1px solid #b3d68a;box-shadow:0 2px 0 #749c5d35;padding:4px 10px;border-radius:16px;color:#3d6937}
+.farm-world .scene-ripe{background:linear-gradient(#fff8cf,#ffdf7a);border-color:#e6bb55;color:#785421;box-shadow:0 2px 0 #b98f3935}
+/* Warm stone paths, little flowers and lush grass frame each plot. */
+.farm-world .farm-parcel{border-image:none;border-right:9px solid transparent;border-bottom:11px solid transparent;background-clip:padding-box}
+.farm-world .farm-parcel:before{content:'';position:absolute;inset:0 -9px -11px 0;z-index:-1;pointer-events:none;background:repeating-linear-gradient(0deg,transparent 0 28px,#b9a77755 29px 31px),linear-gradient(90deg,#fff5cf,#e6d4a3);clip-path:polygon(calc(100% - 9px) 0,100% 0,100% 100%,0 100%,0 calc(100% - 11px),calc(100% - 9px) calc(100% - 11px));filter:drop-shadow(1px 2px 0 #81994e55)}
+.farm-world .source-grass{width:34px;height:30px;bottom:15px;right:12px;opacity:.7}
+.farm-world .farm-parcel:nth-child(3n):after{content:'';position:absolute;bottom:19px;left:18px;width:5px;height:5px;border-radius:50%;background:#fff8da;box-shadow:9px -5px #ffe991,16px 1px #fff8da,5px 3px #e7b26e;pointer-events:none}
+.farm-world .farm-grass{opacity:.21;filter:saturate(1.3)}
+.farm-world{background-color:#b6d77e;background-image:radial-gradient(ellipse at 20% 20%,#f9f5b96b,transparent 48%),radial-gradient(ellipse at 85% 80%,#65a34538,transparent 50%)}
+/* Compact work bubbles never repeat the bed labels below them. */
+.farm-world .farm-parcel.has-work-badge{padding-top:54px!important}
+.farm-world .bed-work-badge{top:8px;max-width:202px;border-radius:19px;padding:7px 11px;gap:6px;border-color:#ebcf80;background:linear-gradient(#fffced,#fff0be);box-shadow:0 3px 0 #c7a867,0 6px 8px #49623520}
+.farm-world .bed-work-icon{font-size:20px}
+.farm-world .bed-work-badge small{display:none}
+.farm-world .bed-work-badge strong{font-size:20px!important}
+.farm-world .bed-work-badge:is([data-kind=late],[data-kind=waiting],[data-kind=review],[data-kind=done]) strong{font-size:14px!important;max-width:145px}
+.farm-world .farm-parcel.has-work-badge>.parcel-status:not(:has(.scene-stage)){display:none}
+.farm-world .add-parcel .parcel-land{border:3px dashed #72a54b!important;background:#dcf1ad55!important;box-shadow:0 5px 0 #6e944730!important}
+html[data-theme=dark] .farm-world{background-color:#527a45}
+html[data-theme=dark] .farm-world .parcel-status b{color:#f2ffd8;text-shadow:0 2px #29472a}
+@media(prefers-reduced-motion:reduce){.farm-world .farm-parcel{transition:none}}
