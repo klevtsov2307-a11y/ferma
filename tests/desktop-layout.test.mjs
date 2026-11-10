@@ -1,0 +1,4 @@
+import {test} from 'node:test';import assert from 'node:assert/strict';import vm from 'node:vm';import {readFileSync} from 'node:fs';
+const source=readFileSync(new URL('../dist/desktop-farm.js',import.meta.url),'utf8'),ctx=vm.createContext({});vm.runInContext(source.slice(0,source.indexOf('const mapBeforeDesktop')),ctx);
+test('wide desktop farms use screen width and avoid the old narrow four-column tower',()=>{for(const [w,h] of [[1280,720],[1920,1080],[2560,1440]]){const layout=ctx.desktopFarmLayout(15,w,h);assert.equal(layout.width,w-40);assert.ok(layout.columns>=5);const totalHeight=Math.ceil(16/layout.columns)*layout.cellHeight+126;assert.ok(totalHeight<h-90)}});
+test('large farms expand camera scene with finite grid dimensions',()=>{for(const n of [0,1,30,100]){const l=ctx.desktopFarmLayout(n,1440,900);assert.ok(Number.isFinite(l.cellHeight));assert.ok(l.columns>=3&&l.columns<=10);assert.ok(l.cellHeight>=158)}});
