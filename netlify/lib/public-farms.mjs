@@ -2,8 +2,9 @@ import {randomUUID} from 'node:crypto';
 import {RuleError,transaction} from './operations.mjs';
 export function farmName(value){if(typeof value!=='string')throw new RuleError('Введите название хозяйства',400);const n=value.trim().replace(/\s+/g,' ');if(n.length<2||n.length>60||/[<>\x00-\x1f]/.test(n))throw new RuleError('Название: от 2 до 60 символов, без разметки',400);return n}
 export async function publicFarmAPI(db,user,action,b,method,url){
- if(!['my-farm','farm-directory','farm-view'].includes(action))return null;
+ if(!['my-farm','farm-directory','farm-view','profile-save'].includes(action))return null;
  return transaction(db,async c=>{const q=async(s,p=[]) =>(await c.query(s,p)).rows;
+ if(action==='profile-save'&&method==='POST'){const name=farmName(b.name);return {user:(await q('UPDATE users SET name=$1 WHERE id=$2 RETURNING id,login,name,role',[name,user.id]))[0]}}
  if(action==='my-farm'&&method==='POST'&&typeof b.visible==='boolean'){return {farm:(await q('UPDATE public_farms SET visible=$1,updated_at=now() WHERE user_id=$2 RETURNING id,name,visible',[b.visible,user.id]))[0]||null}}
  if(action==='my-farm'&&method==='POST'){const name=farmName(b.name);return {farm:(await q('INSERT INTO public_farms(id,user_id,name) VALUES($1,$2,$3) ON CONFLICT(user_id) DO UPDATE SET name=EXCLUDED.name,updated_at=now() RETURNING id,name',[randomUUID(),user.id,name]))[0]}}
  if(action==='my-farm'&&method==='GET')return {farm:(await q('SELECT id,name,visible FROM public_farms WHERE user_id=$1',[user.id]))[0]||null};
