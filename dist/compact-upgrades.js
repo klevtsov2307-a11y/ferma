@@ -1,18 +1,19 @@
 const compactUpgradeGroups=[
  {id:'borders',icon:'🪵',name:'Бортики',hint:'Дерево и бетон',items:['wood','concrete']},
  {id:'water',icon:'💧',name:'Полив',hint:'Автоматическая забота',items:['drip']},
- {id:'shelter',icon:'🏡',name:'Укрытия',hint:'Парник и теплица',items:['cover','tunnel','greenhouse']},
  {id:'plants',icon:'🌿',name:'Для растений',hint:'Опоры и мульча',items:['trellis']},
- {id:'details',icon:'✨',name:'Ещё для грядки',hint:'Табличка, зоны и почва',items:[]}
+ {id:'shelter',icon:'🏡',name:'Укрытия',hint:'Парник и теплица',items:['cover','tunnel','greenhouse']},
+ {id:'sign',icon:'🏷️',name:'Моя табличка',hint:'Название грядки',items:[]}
 ];
 function compactUpgradeBack(id,group){return `<button type="button" class="upgrade-mini-back" onclick="compactUpgrades(${id}${group?",'"+group+"'":''})">← ${group?'К вариантам':'Все категории'}</button>`}
 async function compactUpgrades(id,group=''){
  const p=myPlots().find(p=>Number(p.id)===Number(id));if(!p)return;
+ if(group==='sign'){sign(id);return}
  if(!lifeData){modalForm('Улучшим вашу грядку','<div class="upgrade-loading" role="status">🌿 Загружаем варианты…</div>',()=>{});const box=document.querySelector('.upgrade-loading'),uid=account?.id;await loadLife();if(!box?.isConnected||account?.id!==uid)return;if(!lifeData){toast('Не удалось загрузить улучшения. Попробуйте ещё раз.');return}}
  const selected=compactUpgradeGroups.find(g=>g.id===group);
  if(!selected){modalForm('Улучшим вашу грядку',`<div class="upgrade-mini-context">Грядка №${id} · ${esc(p.size)} м²</div><div class="upgrade-category-grid">${compactUpgradeGroups.map(g=>`<button type="button" onclick="compactUpgrades(${id},'${g.id}')"><span>${g.icon}</span><b>${g.name}</b><small>${g.hint}</small></button>`).join('')}</div>`,()=>{});return}
  const rows=selected.items.map(key=>{const u=bedUpgrades.find(u=>u.id===key);if(!u)return '';const reason=upgradeBlocked(u,bedPresentation(p));return `<button type="button" class="upgrade-mini-option" ${reason?'disabled':''} onclick="compactUpgradeDetail(${id},'${u.id}','${group}')"><span>${u.icon}</span><div><b>${esc(u.name)}</b><small>${esc(reason||'≈ '+upgradePrice(u,p).toLocaleString('ru-RU')+' демо-₽ · с монтажом')}</small></div><em>${reason?'🔒':'›'}</em></button>`}).join('');
- const extras=group==='plants'?`<button type="button" class="upgrade-mini-option" onclick="compactUpgradeRequest(${id},'mulch','🍂','Мульча','plants')"><span>🍂</span><div><b>Мульча</b><small>Материал и цену подберёт садовник</small></div><em>›</em></button>`:group==='details'?`<button type="button" class="upgrade-mini-option" onclick="sign(${id})"><span>🏷️</span><div><b>Моя табличка</b><small>Название грядки</small></div><em>›</em></button><button type="button" class="upgrade-mini-option" onclick="roomZones(${id})"><span>▦</span><div><b>Разделить на зоны</b><small>Несколько культур на грядке</small></div><em>›</em></button><button type="button" class="upgrade-mini-option" onclick="compactUpgradeRequest(${id},'soil','🧪','Проверить почву','details')"><span>🧪</span><div><b>Проверить почву</b><small>Анализ и рекомендации</small></div><em>›</em></button>`:'';
+ const extras=group==='plants'?`<button type="button" class="upgrade-mini-option" onclick="compactUpgradeRequest(${id},'mulch','🍂','Мульча','plants')"><span>🍂</span><div><b>Мульча</b><small>Материал и цену подберёт садовник</small></div><em>›</em></button>`:'';
  modalForm(selected.name,`${compactUpgradeBack(id)}<div class="upgrade-mini-options">${rows}${extras}</div>`,()=>{});
 }
 function compactUpgradeDetail(id,key,group){const p=myPlots().find(p=>Number(p.id)===Number(id)),u=bedUpgrades.find(u=>u.id===key);if(!p||!u)return;const reason=upgradeBlocked(u,bedPresentation(p));if(reason){toast(reason);return}const requestKey=crypto.randomUUID();
