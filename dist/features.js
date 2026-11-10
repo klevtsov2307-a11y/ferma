@@ -2,7 +2,7 @@
 const demoRender=render,demoHome=home,demoFarmer=farmer;let authResolved=false,account=null,cloud=null,viewFilter='all';
 state.records??=[];state.preferences??={name:'Павел',goal:20};
 const pendingReads=new Map();
-const api=async(path,body)=>{
+let api=async(path,body)=>{
  const identity=account?.id||'guest';const key=identity+':'+path;
  if(body===undefined&&pendingReads.has(key))return pendingReads.get(key);
  const run=async()=>{const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),20000);try{const r=await fetch('/api/'+path,{method:body===undefined?'GET':'POST',headers:body===undefined?{}:{'content-type':'application/json'},credentials:'same-origin',body:body===undefined?undefined:JSON.stringify(body),signal:controller.signal});let d;try{d=await r.json()}catch{throw Error('Сервер пока недоступен. Попробуйте ещё раз.')}if(!r.ok)throw Error(d.error||'Ошибка сервера');if(path!=='me'&&path!=='login'&&path!=='register'&&(account?.id||'guest')!==identity)throw Error('Аккаунт изменился. Откройте экран заново.');return d}catch(e){if(e.name==='AbortError')throw Error('Ответ задерживается. Результат пока неизвестен: проверьте список задач перед повторной оплатой.');if(e instanceof TypeError)throw Error('Не удалось связаться с сервером. Проверьте интернет. Если вы подтверждали оплату, сначала проверьте список задач.');throw e}finally{clearTimeout(timer)}};

@@ -1,3 +1,4 @@
+import {virtualGardenerAPI} from '../lib/virtual-gardener.mjs';
 import {plantingAPI} from '../lib/plant-packages.mjs';
 import {journeyAPI} from '../lib/journeys.mjs';
 import {marketAPI} from '../lib/market.mjs';
@@ -34,6 +35,7 @@ export default async function(request,context){
  if(action==='me')return response({user:user||null});
  if(!user)return response({error:'Войди в аккаунт'},401);
  if(action==='logout'&&request.method==='POST'){await db.sql`DELETE FROM sessions WHERE token_hash=${hashToken(token)}`;return response({ok:true},200,{'set-cookie':cookie('',0)})}
+ const virtual=await virtualGardenerAPI(db,user,action,b,request.method);if(virtual!==null)return response(virtual);
  const publicFarm=await publicFarmAPI(db,user,action,b,request.method,url);if(publicFarm!==null)return response(publicFarm);
  const staff=user.role==='admin';
  const planting=await plantingAPI(db,user,action,b,request.method);if(planting!==null)return response(planting);

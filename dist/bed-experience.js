@@ -5,7 +5,7 @@ function bedPresentation(p){
  const scene=typeof demoGardenScene==='function'?demoGardenScene(p):null;
  const active=['planted','growing','harvest_ready'].includes(state);
  // A confirmed or simulated crop cycle supersedes the old decorative preview.
- if(active)return {...p,growing_state:state,crop:p.crop||scene?.crop||'',preview:false,scene:scene?{...scene,stage:state,crop:p.crop||scene.crop}:null};
+ if(active)return {...p,growing_state:state,crop:p.crop||scene?.crop||'',preview:false,scene:scene?{...scene,stage:state,crop:p.crop||scene.crop}:typeof lifeData!=='undefined'&&lifeData?.equipment?.some(e=>Number(e.plot_id)===Number(p.id)&&e.condition!=='retired')&&/томат|помид|огур|морков|баклаж/i.test(p.crop||'')?{stage:state,crop:p.crop,border:lifeData.equipment.some(e=>Number(e.plot_id)===Number(p.id)&&e.catalog_id==='concrete'&&e.condition!=='retired')?'concrete':'wood',irrigation:lifeData.equipment.some(e=>Number(e.plot_id)===Number(p.id)&&e.catalog_id==='drip'&&e.condition!=='retired')}:null};
  if(scene)return {...p,growing_state:scene.stage,crop:scene.crop,preview:true,scene};
  return {...p,growing_state:state,preview:false,scene:null};
 }
