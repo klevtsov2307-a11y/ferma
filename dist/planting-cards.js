@@ -14,8 +14,8 @@ async function confirmPlanting(crop,button){
  if(plantingBusy||!plantingSelection)return;const selection=plantingSelection,offer=selection.offers.find(x=>x.id===crop);if(!offer)return;
  plantingBusy=true;button.disabled=true;const original=button.textContent;button.textContent='Отправляем садовнику…';
  try{const data=await api('planting-buy',{plot:selection.plot,crop,price:offer.quote.price,key:selection.keys[crop]});
- walletData=null;modal.close();location.hash='orders';await loadOperations();render();
- modalForm('🌱 Посадка заказана!',`<p><b>${esc(offer.name)}</b> · грядка №${selection.plot}</p><p>Оплачено демобалансом: <b>${money(data.order.price_kopecks)}</b>.</p><p>Задача назначена садовнику. Плановое завершение: <b>${fmt(data.order.finish_by)}</b>.</p><p>Обратный отсчёт появится над грядкой. «Посажено» — после подтверждения выполнения.</p><button type="button" class="btn" onclick="modal.close();location.hash='#home'">К своей грядке</button><button type="button" class="btn light" onclick="modal.close();location.hash='#orders'">Посмотреть задачу</button>`,()=>{});
+ walletData=null;modal.close();openFarmBed(selection.plot,'overview');await loadOperations();render();
+ modalForm('🌱 Посадка заказана!',`<p><b>${esc(offer.name)}</b> · грядка №${selection.plot}</p><p>Оплачено демобалансом: <b>${money(data.order.price_kopecks)}</b>.</p><p>Задача назначена садовнику. Плановое завершение: <b>${fmt(data.order.finish_by)}</b>.</p><p>Обратный отсчёт появится над грядкой. «Посажено» — после подтверждения выполнения.</p><button type="button" class="btn" onclick="modal.close();openFarmBed(${selection.plot},'overview')">К своей грядке</button><button type="button" class="btn light" onclick="modal.close();location.hash='#orders'">Посмотреть задачу</button>`,()=>{});
  }catch(e){toast(e.message);button.disabled=false;button.textContent=original}finally{plantingBusy=false}
 }
 const beforePlantingOrderCard=orderCard;
